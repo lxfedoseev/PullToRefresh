@@ -66,6 +66,17 @@ class RefreshView: UIView, UIScrollViewDelegate {
         ).cgPath
     layer.addSublayer(ovalShapeLayer)
     
+    let airplaneImage = UIImage(named: "airplane.png")!
+    airplaneLayer.contents = airplaneImage.cgImage
+    airplaneLayer.bounds = CGRect(x: 0.0, y: 0.0,
+                                  width: airplaneImage.size.width,
+                                  height: airplaneImage.size.height)
+    airplaneLayer.position = CGPoint(
+        x: frame.size.width/2 + frame.size.height/2 * 0.8,
+        y: frame.size.height/2)
+    layer.addSublayer(airplaneLayer)
+    airplaneLayer.opacity = 0.0
+    
     
   }
   
@@ -102,6 +113,35 @@ class RefreshView: UIView, UIScrollViewDelegate {
       self.scrollView.contentInset = newInsets
     }
     
+    let strokeStartAnimation = CABasicAnimation(
+        keyPath: "strokeStart")
+    strokeStartAnimation.fromValue = -0.5
+    strokeStartAnimation.toValue = 1.0
+    let strokeEndAnimation = CABasicAnimation(
+        keyPath: "strokeEnd")
+    strokeEndAnimation.fromValue = 0.0
+    strokeEndAnimation.toValue = 1.0
+    
+    let strokeAnimationGroup = CAAnimationGroup()
+    strokeAnimationGroup.duration = 1.5
+    strokeAnimationGroup.repeatDuration = 5.0
+    strokeAnimationGroup.animations = [strokeStartAnimation, strokeEndAnimation]
+    ovalShapeLayer.add(strokeAnimationGroup, forKey: nil)
+    
+    let flightAnimation = CAKeyframeAnimation(keyPath: "position")
+    flightAnimation.path = ovalShapeLayer.path
+    flightAnimation.calculationMode = kCAAnimationPaced
+    
+    let airplaneOrientationAnimation = CABasicAnimation(keyPath:
+        "transform.rotation")
+    airplaneOrientationAnimation.fromValue = 0
+    airplaneOrientationAnimation.toValue = 2.0 * .pi
+    
+    let flightAnimationGroup = CAAnimationGroup()
+    flightAnimationGroup.duration = 1.5
+    flightAnimationGroup.repeatDuration = 5.0
+    flightAnimationGroup.animations = [flightAnimation, airplaneOrientationAnimation]
+    airplaneLayer.add(flightAnimationGroup, forKey: nil)
   }
   
   func endRefreshing() {
@@ -121,7 +161,8 @@ class RefreshView: UIView, UIScrollViewDelegate {
   }
   
   func redrawFromProgress(_ progress: CGFloat) {
-    
+    ovalShapeLayer.strokeEnd = progress
+    airplaneLayer.opacity = Float(progress)
   }
   
 }
